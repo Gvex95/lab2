@@ -23,6 +23,8 @@ entity top is
   port (
     clk_i          : in  std_logic;
     reset_n_i      : in  std_logic;
+	 direct_mode_i   : in  std_logic;
+	 display_mode_i : in  std_logic_vector(1 downto 0);
     -- vga
     vga_hsync_o    : out std_logic;
     vga_vsync_o    : out std_logic;
@@ -156,6 +158,9 @@ architecture rtl of top is
   signal dir_blue            : std_logic_vector(7 downto 0);
   signal dir_pixel_column    : std_logic_vector(10 downto 0);
   signal dir_pixel_row       : std_logic_vector(10 downto 0);
+	
+  signal brojac              : std_logic_vector(13 downto 0);
+  signal brojac2             : std_logic_vector(19 downto 0);
 
 begin
 
@@ -168,8 +173,9 @@ begin
   graphics_lenght <= conv_std_logic_vector(MEM_SIZE*8*8, GRAPH_MEM_ADDR_WIDTH);
   
   -- removed to inputs pin
-  direct_mode <= '1';
-  display_mode     <= "10";  -- 01 - text mode, 10 - graphics mode, 11 - text & graphics
+
+  --direct_mode <= '1';
+  --display_mode     <= "10";  -- 01 - text mode, 10 - graphics mode, 11 - text & graphics
   
   font_size        <= x"1";
   show_frame       <= '1';
@@ -211,14 +217,14 @@ begin
     clk_i              => clk_i,
     reset_n_i          => reset_n_i,
     --
-    direct_mode_i      => direct_mode,
+    direct_mode_i      => direct_mode_i,
     dir_red_i          => dir_red,
     dir_green_i        => dir_green,
     dir_blue_i         => dir_blue,
     dir_pixel_column_o => dir_pixel_column,
     dir_pixel_row_o    => dir_pixel_row,
     -- cfg
-    display_mode_i     => display_mode,  -- 01 - text mode, 10 - graphics mode, 11 - text & graphics
+    display_mode_i     => display_mode_i,  -- 01 - text mode, 10 - graphics mode, 11 - text & graphics
     -- text mode interface
     text_addr_i        => char_address,
     text_data_i        => char_value,
@@ -251,34 +257,36 @@ begin
   --dir_green
   --dir_blue
  ----------------------------------------------
---SVE
+--BOJE --
 dir_red <= x"FF" when dir_pixel_column < 1*(H_RES/8) else
-			  x"FF" when dir_pixel_column < 2*(H_RES/8) else
-			  x"00" when dir_pixel_column < 3*(H_RES/8) else
-			  x"00" when dir_pixel_column < 4*(H_RES/8) else
-			  x"FF" when dir_pixel_column < 5*(H_RES/8) else
-			  x"FF" when dir_pixel_column < 6*(H_RES/8) else
-			  x"00" when dir_pixel_column < 7*(H_RES/8) else
+			  x"FF" when dir_pixel_column >= 1*(H_RES/8) and  dir_pixel_column <2*(H_RES/8) else
+			  x"00" when dir_pixel_column >= 2*(H_RES/8) and  dir_pixel_column <3*(H_RES/8) else
+			  x"00" when dir_pixel_column >= 3*(H_RES/8) and  dir_pixel_column <4*(H_RES/8) else
+			  x"FF" when dir_pixel_column >= 4*(H_RES/8) and  dir_pixel_column <5*(H_RES/8) else
+			  x"FF" when dir_pixel_column >= 5*(H_RES/8) and  dir_pixel_column <6*(H_RES/8) else
+			  x"00" when dir_pixel_column >= 6*(H_RES/8) and  dir_pixel_column <7*(H_RES/8) else 
 			  x"00";
 
+dir_green <= x"FF" when dir_pixel_column < 1*(H_RES/8) else
+				 x"FF" when dir_pixel_column >= 1*(H_RES/8) and  dir_pixel_column <2*(H_RES/8) else
+				 x"FF" when dir_pixel_column >= 2*(H_RES/8) and  dir_pixel_column <3*(H_RES/8) else
+				 x"FF" when dir_pixel_column >= 3*(H_RES/8) and  dir_pixel_column <4*(H_RES/8) else
+				 x"00" when dir_pixel_column >= 4*(H_RES/8) and  dir_pixel_column <5*(H_RES/8) else
+				 x"00" when dir_pixel_column >= 5*(H_RES/8) and  dir_pixel_column <6*(H_RES/8) else
+				 x"00" when dir_pixel_column >= 6*(H_RES/8) and  dir_pixel_column <7*(H_RES/8) else 
+				 x"00";
 
-dir_green<= x"FF" when dir_pixel_column < 1*(H_RES/8) else
-			   x"FF" when dir_pixel_column < 2*(H_RES/8) else
-			   x"FF" when dir_pixel_column < 3*(H_RES/8) else
-			   x"FF" when dir_pixel_column < 4*(H_RES/8) else
-			   x"00" when dir_pixel_column < 5*(H_RES/8) else
-			   x"00" when dir_pixel_column < 6*(H_RES/8) else
-			   x"00" when dir_pixel_column < 7*(H_RES/8) else
-			   x"00";			
+
+		
 
 dir_blue <= x"FF" when dir_pixel_column < 1*(H_RES/8) else
-			   x"00" when dir_pixel_column < 2*(H_RES/8) else
-			   x"FF" when dir_pixel_column < 3*(H_RES/8) else
-			   x"00" when dir_pixel_column < 4*(H_RES/8) else
-			   x"FF" when dir_pixel_column < 5*(H_RES/8) else
-			   x"00" when dir_pixel_column < 6*(H_RES/8) else
-			   x"FF" when dir_pixel_column < 7*(H_RES/8) else
-			   x"00";
+				 x"00" when dir_pixel_column >= 1*(H_RES/8) and  dir_pixel_column <2*(H_RES/8) else
+				 x"FF" when dir_pixel_column >= 2*(H_RES/8) and  dir_pixel_column <3*(H_RES/8) else
+				 x"00" when dir_pixel_column >= 3*(H_RES/8) and  dir_pixel_column <4*(H_RES/8) else
+				 x"FF" when dir_pixel_column >= 4*(H_RES/8) and  dir_pixel_column <5*(H_RES/8) else
+				 x"00" when dir_pixel_column >= 5*(H_RES/8) and  dir_pixel_column <6*(H_RES/8) else
+				 x"FF" when dir_pixel_column >= 6*(H_RES/8) and  dir_pixel_column <7*(H_RES/8) else 
+				 x"00";
 				
 
 
@@ -289,10 +297,194 @@ dir_blue <= x"FF" when dir_pixel_column < 1*(H_RES/8) else
   --char_value
   --char_we
   
+  --ISPIS TEKSTA--
+  char_we <= '1';
+  
+  process(pix_clock_s) begin
+		if (rising_edge(pix_clock_s)) then
+			if (brojac = 1199) then
+				brojac <= (others => '0');
+			else
+				brojac <= brojac + 1;
+			end if;
+		end if;
+ end process;
+  --ZARULJA A JA MISLILAA
+  --A-1,R-18,U-21,L-12,J-10,M-13,I-9,S-19,
+  
+  process(brojac) begin
+	if (brojac=250) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(26,6); --Z
+	
+	elsif (brojac=251) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(1,6); --A
+	
+	elsif (brojac=252) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(18,6); --R
+	
+	elsif (brojac=253) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(21,6); --U
+	
+	elsif (brojac=254) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(12,6); --L
+	
+	elsif (brojac=255) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(10,6); --J
+	
+	elsif (brojac=256) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(1,6); --A
+	
+	elsif (brojac=257) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(32,6); --SPACE
+	
+	elsif (brojac=258) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(1,6); --A
+	
+	elsif (brojac=259) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(32,6); --SPACE
+	
+	elsif (brojac=260) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(10,6); --J
+	
+	elsif (brojac=261) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(1,6); --A
+   
+	elsif (brojac=262) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(32,6); --SPACE
+   
+	elsif (brojac=263) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(13,6); --M
+   
+	elsif (brojac=264) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(9,6); --I
+	
+	elsif (brojac=265) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(19,6); --S
+	
+	elsif (brojac=266) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(12,6); --L
+	
+	elsif (brojac=267) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(9,6); --I
+	
+	elsif (brojac=268) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(12,6); --L
+	
+	elsif (brojac=269) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(1,6); --A
+  
+  elsif (brojac=270) then
+		char_address <= (brojac);
+		char_value<= conv_std_logic_vector(1,6); --A
+
+  end if;
+ end process;
+  
+  
+  
+  
+  
+  
+  
   -- koristeci signale realizovati logiku koja pise po GRAPH_MEM
   --pixel_address
   --pixel_value
   --pixel_we
   
+	pixel_we <= '1';
+	
+	process(pix_clock_s) begin
+		if (rising_edge(pix_clock_s)) then
+			if (brojac2 = 1199) then
+				brojac2 <= (others => '0');
+			else
+				brojac2 <= brojac2 + 1;
+			end if;
+		end if;
+	end process;
+	
+	pixel_address <= (brojac2);
+	process(brojac2) begin
+		if(brojac2 = 170)then
+			pixel_value <= "11111111111111110000000000000000";
+		
+		elsif(brojac2 = 190)then
+			pixel_value <= "10000000000000010000000000000000";
+		
+		elsif(brojac2 = 210)then
+			pixel_value <= "10000000000000010000000000000000";
+		
+		elsif(brojac2 = 230)then
+			pixel_value <= "10000000000000010000000000000000";
+		
+		elsif(brojac2 = 250)then
+			pixel_value <= "10000000000000010000000000000000";
+		
+		elsif(brojac2 = 270)then
+			pixel_value <= "10000000000000010000000000000000";
+			
+		elsif(brojac2 = 290)then
+			pixel_value <= "10000000000000010000000000000000";
+		
+		elsif(brojac2 = 310)then
+			pixel_value <= "10000000000000010000000000000000";
+			
+		elsif(brojac2 = 330)then
+			pixel_value <= "10000000000000010000000000000000";
+		
+		elsif(brojac2 = 350)then
+			pixel_value <= "10000000000000010000000000000000";
+		
+		elsif(brojac2 = 370)then
+			pixel_value <= "10000000000000010000000000000000";
+		
+		elsif(brojac2 = 390)then
+			pixel_value <= "10000000000000010000000000000000";
+		
+		elsif(brojac2 = 410)then
+			pixel_value <= "10000000000000010000000000000000";
+			
+		elsif(brojac2 = 430)then
+			pixel_value <= "10000000000000010000000000000000";
+			
+		elsif(brojac2 = 450)then
+			pixel_value <= "10000000000000010000000000000000";
+			
+		elsif(brojac2 = 470)then
+			pixel_value <= "10000000000000010000000000000000";
+			
+		elsif(brojac2 = 490)then
+			pixel_value <= "10000000000000010000000000000000";
+			
+		elsif(brojac2 = 510)then
+			pixel_value <= "11111111111111110000000000000000";
+		
+		else
+			pixel_value <= "00000000000000000000000000000000";
+	
+		end if;	
+		
+	end process;
   
+ 
 end rtl;
